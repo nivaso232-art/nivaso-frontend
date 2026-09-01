@@ -246,6 +246,14 @@ export function ChatTest() {
       <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
         {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+          {/* Active business indicator */}
+          <div className="flex flex-col gap-0.5">
+            <label className="text-xs font-medium text-gray-500">Business</label>
+            <span className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-mono text-gray-700">
+              {slug || <span className="text-gray-400">not selected</span>}
+            </span>
+          </div>
+
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <label className="text-xs font-medium text-gray-500">Session ID</label>
             <input

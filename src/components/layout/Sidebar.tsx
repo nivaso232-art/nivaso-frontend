@@ -6,9 +6,8 @@ import {
   Users,
   BookOpen,
   MessageSquare,
-  MessageCircle,
   LayoutDashboard,
-    ShoppingCart,
+  ShoppingCart,
   Webhook,
   Activity,
 } from 'lucide-react'
@@ -43,7 +42,6 @@ const navGroups: { label: string | null; items: NavItem[] }[] = [
     label: 'AI & Events',
     items: [
       { to: '/chat', label: 'Chat Tester', icon: MessageSquare },
-      { to: '/chat/demo', label: 'Chat Demo', icon: MessageCircle },
       { to: '/agent-runs', label: 'Agent Runs', icon: Activity },
       { to: '/webhooks', label: 'Webhook Events', icon: Webhook },
     ],

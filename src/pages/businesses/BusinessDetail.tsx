@@ -68,6 +68,7 @@ function ChannelsTab({ slug }: { slug: string }) {
 
   const tgChannel = channels.find((c) => c.channel_type === 'telegram')
   const waChannel = channels.find((c) => c.channel_type === 'whatsapp')
+  const rzpChannel = channels.find((c) => c.channel_type === 'razorpay')
 
   // Telegram form
   const [tgToken, setTgToken] = useState('')
@@ -80,6 +81,12 @@ function ChannelsTab({ slug }: { slug: string }) {
   const [waAppSecret, setWaAppSecret] = useState('')
   const [waVerifyToken, setWaVerifyToken] = useState('')
   const [waSaved, setWaSaved] = useState(false)
+
+  // Razorpay form
+  const [rzpKeyId, setRzpKeyId] = useState('')
+  const [rzpKeySecret, setRzpKeySecret] = useState('')
+  const [rzpWebhookSecret, setRzpWebhookSecret] = useState('')
+  const [rzpSaved, setRzpSaved] = useState(false)
 
   const { mutate: saveTelegram, isPending: savingTg } = useMutation({
     mutationFn: (payload: { bot_token: string; webhook_secret: string }) =>
@@ -96,6 +103,15 @@ function ChannelsTab({ slug }: { slug: string }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['channels', slug] })
       setWaSaved(true); setTimeout(() => setWaSaved(false), 2000)
+    },
+  })
+
+  const { mutate: saveRazorpay, isPending: savingRzp } = useMutation({
+    mutationFn: (payload: { key_id: string; key_secret: string; webhook_secret: string }) =>
+      channelsApi.configureRazorpay(slug, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['channels', slug] })
+      setRzpSaved(true); setTimeout(() => setRzpSaved(false), 2000)
     },
   })
 
@@ -257,25 +273,118 @@ function ChannelsTab({ slug }: { slug: string }) {
         </div>
       </div>
 
+      {/* ── Razorpay ── */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">₹</span>
+            <h3 className="text-sm font-semibold text-gray-800">Razorpay Payments</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <ChannelStatus configured={rzpChannel?.configured ?? false} />
+            {rzpChannel && (
+              <button
+                onClick={() => removeChannel('razorpay')}
+                className="text-gray-300 hover:text-red-500 transition-colors"
+                title="Remove Razorpay config"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {rzpChannel && (
+          <div className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
+            <span className="font-medium">Webhook URL for Razorpay dashboard:</span>
+            <span className="ml-1 font-mono break-all">{backendHost}/webhooks/razorpay/{slug}</span>
+            <CopyButton text={`${backendHost}/webhooks/razorpay/${slug}`} />
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Key ID"
+              value={rzpKeyId}
+              onChange={(e) => setRzpKeyId(e.target.value)}
+              placeholder={rzpChannel ? '(current)' : 'rzp_test_…'}
+            />
+            <Input
+              label="Key Secret"
+              type="password"
+              value={rzpKeySecret}
+              onChange={(e) => setRzpKeySecret(e.target.value)}
+              placeholder={rzpChannel ? '•••••' : 'your-secret'}
+            />
+          </div>
+          <Input
+            label="Webhook Secret"
+            type="password"
+            value={rzpWebhookSecret}
+            onChange={(e) => setRzpWebhookSecret(e.target.value)}
+            placeholder="Secret set in Razorpay dashboard webhook config"
+          />
+          <div className="flex items-center gap-3">
+            <Button
+              size="sm"
+              onClick={() => saveRazorpay({ key_id: rzpKeyId, key_secret: rzpKeySecret, webhook_secret: rzpWebhookSecret })}
+              loading={savingRzp}
+              disabled={!rzpKeyId || !rzpKeySecret}
+            >
+              <Save className="h-4 w-4" />
+              {rzpChannel ? 'Update' : 'Connect'} Razorpay
+            </Button>
+            {rzpSaved && <span className="text-xs font-medium text-green-600">Saved!</span>}
+          </div>
+        </div>
+      </div>
+
       {/* ── Web chat ── */}
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-indigo-500" />
             <h3 className="text-sm font-semibold text-gray-800">Web Chat</h3>
           </div>
           <ChannelStatus configured={true} />
         </div>
-        <p className="mb-2 text-xs text-gray-500">
-          Use the Chat Tester in the sidebar, or call the API directly:
-        </p>
-        <div className="rounded-lg bg-gray-50 px-3 py-2 text-xs font-mono text-gray-600 break-all flex items-center gap-1">
-          POST {backendHost}/web/chat
-          <CopyButton text={`${backendHost}/web/chat`} />
+
+        {/* Business slug — the unique identity for this business's web channel */}
+        <div className="mb-3 space-y-1">
+          <p className="text-xs font-medium text-gray-500">Business Slug</p>
+          <div className="flex items-center gap-2 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2">
+            <code className="flex-1 text-sm font-bold text-indigo-700">{slug}</code>
+            <CopyButton text={slug} />
+          </div>
+          <p className="text-xs text-gray-400">This slug uniquely identifies this business across all channels.</p>
         </div>
-        <p className="mt-2 text-xs text-gray-400">
-          Pass <code className="text-gray-600">"business_slug": "{slug}"</code> in the request body.
-        </p>
+
+        {/* Customer chat URL — share with customers */}
+        <div className="mb-3 space-y-1">
+          <p className="text-xs font-medium text-gray-500">Customer Chat URL</p>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+            <code className="flex-1 break-all text-xs text-gray-700">
+              {window.location.origin}/chat/{slug}
+            </code>
+            <CopyButton text={`${window.location.origin}/chat/${slug}`} />
+          </div>
+          <p className="text-xs text-gray-400">
+            Open this URL to chat as a customer. Share it or embed it on your website.
+          </p>
+        </div>
+
+        {/* API endpoint for custom integrations */}
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-gray-500">API Endpoint (custom embed)</p>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+            <code className="flex-1 text-xs text-gray-700">POST {backendHost}/web/chat</code>
+            <CopyButton text={`${backendHost}/web/chat`} />
+          </div>
+          <p className="text-xs text-gray-400">
+            Pass <code className="rounded bg-gray-100 px-1 text-gray-600">"business_slug": "{slug}"</code> in the JSON body.
+          </p>
+        </div>
       </div>
     </div>
   )

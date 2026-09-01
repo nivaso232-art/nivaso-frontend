@@ -3,6 +3,7 @@ import type {
   BusinessChannel,
   TelegramChannelPayload,
   WhatsAppChannelPayload,
+  RazorpayChannelPayload,
 } from '@/types/channel'
 
 export const channelsApi = {
@@ -17,6 +18,11 @@ export const channelsApi = {
   configureWhatsApp: (slug: string, payload: WhatsAppChannelPayload) =>
     apiClient
       .put<BusinessChannel>(`/admin/${slug}/channels/whatsapp`, payload)
+      .then((r) => r.data),
+
+  configureRazorpay: (slug: string, payload: RazorpayChannelPayload) =>
+    apiClient
+      .put<BusinessChannel>(`/admin/${slug}/channels/razorpay`, payload)
       .then((r) => r.data),
 
   remove: (slug: string, channelType: string) =>

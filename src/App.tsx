@@ -12,12 +12,12 @@ import { CustomerList } from '@/pages/customers/CustomerList'
 import { CustomerDetail } from '@/pages/customers/CustomerDetail'
 import { ArticleList } from '@/pages/knowledge/ArticleList'
 import { ArticleDetail } from '@/pages/knowledge/ArticleDetail'
-import { ChatTest } from '@/pages/chat/ChatTest'
-import { ChatDemo } from '@/pages/chat/ChatDemo'
-import { TenantDashboard } from '@/pages/dashboard/TenantDashboard'
 import { OrderList } from '@/pages/orders/OrderList'
 import { WebhookEventList } from '@/pages/webhooks/WebhookEventList'
 import { AgentRunList } from '@/pages/agent-runs/AgentRunList'
+import { ChatTest } from '@/pages/chat/ChatTest'
+// Customer-facing chat — standalone page, no admin chrome
+import { CustomerChat } from '@/pages/chat/CustomerChat'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,9 +30,8 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          {/* Tenant-facing dashboard — standalone (its own dark console chrome),
-              resolved per subdomain e.g. gamer.nivaso.ai/dashboard. */}
-          <Route path="/dashboard" element={<TenantDashboard />} />
+          {/* Customer-facing chat — one URL per business slug, no admin layout */}
+          <Route path="/chat/:slug" element={<CustomerChat />} />
 
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
@@ -57,7 +56,6 @@ export default function App() {
             <Route path="agent-runs" element={<AgentRunList />} />
 
             <Route path="chat" element={<ChatTest />} />
-            <Route path="chat/demo" element={<ChatDemo />} />
           </Route>
         </Routes>
       </BrowserRouter>
