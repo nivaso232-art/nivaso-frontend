@@ -92,7 +92,7 @@ function SessionCard({
 export function ChatTest() {
   const { selectedBusinessSlug } = useAppStore()
   const qc = useQueryClient()
-  const [userId, setUserId] = useState('web-tester')
+  const [userId, setUserId] = useState(newUserId)
   const [selectedModel, setSelectedModel] = useState(
     `${MODEL_OPTIONS[0].provider}::${MODEL_OPTIONS[0].model}`,
   )
