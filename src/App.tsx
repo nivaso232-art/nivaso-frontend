@@ -13,6 +13,7 @@ import { CustomerDetail } from '@/pages/customers/CustomerDetail'
 import { ArticleList } from '@/pages/knowledge/ArticleList'
 import { ArticleDetail } from '@/pages/knowledge/ArticleDetail'
 import { ChatTest } from '@/pages/chat/ChatTest'
+import { TenantDashboard } from '@/pages/dashboard/TenantDashboard'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,6 +26,10 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          {/* Tenant-facing dashboard — standalone (its own dark console chrome),
+              resolved per subdomain e.g. gamer.nivaso.ai/dashboard. */}
+          <Route path="/dashboard" element={<TenantDashboard />} />
+
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
 

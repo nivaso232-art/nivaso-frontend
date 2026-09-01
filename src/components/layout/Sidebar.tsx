@@ -7,6 +7,7 @@ import {
   BookOpen,
   MessageSquare,
   LayoutDashboard,
+  Gauge,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
@@ -18,6 +19,7 @@ const navItems = [
   { to: '/customers', label: 'Customers', icon: Users },
   { to: '/knowledge', label: 'Knowledge Base', icon: BookOpen },
   { to: '/chat', label: 'Chat Tester', icon: MessageSquare },
+  { to: '/dashboard', label: 'Live Dashboard', icon: Gauge },
 ]
 
 export function Sidebar() {
