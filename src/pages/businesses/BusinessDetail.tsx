@@ -69,6 +69,7 @@ function ChannelsTab({ slug }: { slug: string }) {
 
   const tgChannel = channels.find((c) => c.channel_type === 'telegram')
   const waChannel = channels.find((c) => c.channel_type === 'whatsapp')
+  const rzpChannel = channels.find((c) => c.channel_type === 'razorpay')
 
   // Telegram form
   const [tgToken, setTgToken] = useState('')
@@ -81,6 +82,12 @@ function ChannelsTab({ slug }: { slug: string }) {
   const [waAppSecret, setWaAppSecret] = useState('')
   const [waVerifyToken, setWaVerifyToken] = useState('')
   const [waSaved, setWaSaved] = useState(false)
+
+  // Razorpay form
+  const [rzpKeyId, setRzpKeyId] = useState('')
+  const [rzpKeySecret, setRzpKeySecret] = useState('')
+  const [rzpWebhookSecret, setRzpWebhookSecret] = useState('')
+  const [rzpSaved, setRzpSaved] = useState(false)
 
   const { mutate: saveTelegram, isPending: savingTg } = useMutation({
     mutationFn: (payload: { bot_token: string; webhook_secret: string }) =>
@@ -97,6 +104,15 @@ function ChannelsTab({ slug }: { slug: string }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['channels', slug] })
       setWaSaved(true); setTimeout(() => setWaSaved(false), 2000)
+    },
+  })
+
+  const { mutate: saveRazorpay, isPending: savingRzp } = useMutation({
+    mutationFn: (payload: { key_id: string; key_secret: string; webhook_secret: string }) =>
+      channelsApi.configureRazorpay(slug, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['channels', slug] })
+      setRzpSaved(true); setTimeout(() => setRzpSaved(false), 2000)
     },
   })
 
@@ -254,6 +270,73 @@ function ChannelsTab({ slug }: { slug: string }) {
               {waChannel ? 'Update' : 'Connect'} WhatsApp
             </Button>
             {waSaved && <span className="text-xs font-medium text-green-600">Saved!</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Razorpay ── */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">₹</span>
+            <h3 className="text-sm font-semibold text-gray-800">Razorpay Payments</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <ChannelStatus configured={rzpChannel?.configured ?? false} />
+            {rzpChannel && (
+              <button
+                onClick={() => removeChannel('razorpay')}
+                className="text-gray-300 hover:text-red-500 transition-colors"
+                title="Remove Razorpay config"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {rzpChannel && (
+          <div className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
+            <span className="font-medium">Webhook URL for Razorpay dashboard:</span>
+            <span className="ml-1 font-mono break-all">{backendHost}/webhooks/razorpay/{slug}</span>
+            <CopyButton text={`${backendHost}/webhooks/razorpay/${slug}`} />
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Key ID"
+              value={rzpKeyId}
+              onChange={(e) => setRzpKeyId(e.target.value)}
+              placeholder={rzpChannel ? '(current)' : 'rzp_test_…'}
+            />
+            <Input
+              label="Key Secret"
+              type="password"
+              value={rzpKeySecret}
+              onChange={(e) => setRzpKeySecret(e.target.value)}
+              placeholder={rzpChannel ? '•••••' : 'your-secret'}
+            />
+          </div>
+          <Input
+            label="Webhook Secret"
+            type="password"
+            value={rzpWebhookSecret}
+            onChange={(e) => setRzpWebhookSecret(e.target.value)}
+            placeholder="Secret set in Razorpay dashboard webhook config"
+          />
+          <div className="flex items-center gap-3">
+            <Button
+              size="sm"
+              onClick={() => saveRazorpay({ key_id: rzpKeyId, key_secret: rzpKeySecret, webhook_secret: rzpWebhookSecret })}
+              loading={savingRzp}
+              disabled={!rzpKeyId || !rzpKeySecret}
+            >
+              <Save className="h-4 w-4" />
+              {rzpChannel ? 'Update' : 'Connect'} Razorpay
+            </Button>
+            {rzpSaved && <span className="text-xs font-medium text-green-600">Saved!</span>}
           </div>
         </div>
       </div>
