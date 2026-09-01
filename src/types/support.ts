@@ -25,6 +25,7 @@ export interface SupportTicket {
 export interface UpdateTicketPayload {
   assigned_to?: string
   status?: TicketStatus
+  priority?: TicketPriority
   resolution?: string
 }
 

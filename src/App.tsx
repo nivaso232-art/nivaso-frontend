@@ -13,6 +13,9 @@ import { CustomerDetail } from '@/pages/customers/CustomerDetail'
 import { ArticleList } from '@/pages/knowledge/ArticleList'
 import { ArticleDetail } from '@/pages/knowledge/ArticleDetail'
 import { ChatTest } from '@/pages/chat/ChatTest'
+import { OrderList } from '@/pages/orders/OrderList'
+import { WebhookEventList } from '@/pages/webhooks/WebhookEventList'
+import { AgentRunList } from '@/pages/agent-runs/AgentRunList'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,6 +45,10 @@ export default function App() {
 
             <Route path="knowledge" element={<ArticleList />} />
             <Route path="knowledge/:articleId" element={<ArticleDetail />} />
+
+            <Route path="orders" element={<OrderList />} />
+            <Route path="webhooks" element={<WebhookEventList />} />
+            <Route path="agent-runs" element={<AgentRunList />} />
 
             <Route path="chat" element={<ChatTest />} />
           </Route>

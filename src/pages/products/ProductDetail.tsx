@@ -1,23 +1,71 @@
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
-import { useProduct } from '@/hooks/useProducts'
+import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
+import { useProduct, useUpdateProduct, useArchiveProduct } from '@/hooks/useProducts'
 import { useAppStore } from '@/store/appStore'
 import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 import { Spinner } from '@/components/ui/Spinner'
+import { Modal } from '@/components/ui/Modal'
 import { PRODUCT_STATUS_COLORS } from '@/utils/constants'
 import { formatCurrency } from '@/utils/formatters'
+import type { ProductStatus, UpdateProductPayload } from '@/types/product'
+
+const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'out_of_stock', label: 'Out of Stock' },
+]
 
 export function ProductDetail() {
   const { productId } = useParams<{ productId: string }>()
-  const { selectedBusinessSlug } = useAppStore()
-  const { data: product, isLoading } = useProduct(selectedBusinessSlug, productId ?? '')
+  const navigate = useNavigate()
+  const { selectedBusinessSlug: slug } = useAppStore()
+  const { data: product, isLoading } = useProduct(slug, productId ?? '')
+  const { mutate: update, isPending: saving } = useUpdateProduct(slug, productId ?? '')
+  const { mutate: archive, isPending: archiving } = useArchiveProduct(slug)
+
+  const [editing, setEditing] = useState(false)
+  const [confirmArchive, setConfirmArchive] = useState(false)
+  const [form, setForm] = useState<UpdateProductPayload>({})
+
+  useEffect(() => {
+    if (product) {
+      setForm({
+        name: product.name,
+        price: product.price,
+        sku: product.sku ?? '',
+        category: product.category ?? '',
+        description: product.description ?? '',
+        status: product.status,
+      })
+    }
+  }, [product])
 
   if (isLoading) return <Spinner />
   if (!product) return <p className="text-gray-500">Product not found.</p>
 
+  const handleSave = () => {
+    const payload: UpdateProductPayload = {}
+    if (form.name !== product.name) payload.name = form.name
+    if (form.price !== product.price) payload.price = form.price
+    if ((form.sku || '') !== (product.sku || '')) payload.sku = form.sku
+    if ((form.category || '') !== (product.category || '')) payload.category = form.category
+    if ((form.description || '') !== (product.description || '')) payload.description = form.description
+    if (form.status !== product.status) payload.status = form.status
+    update(payload, { onSuccess: () => setEditing(false) })
+  }
+
+  const handleArchive = () => {
+    archive(product.id, { onSuccess: () => navigate('/products') })
+  }
+
   return (
-    <div className="max-w-2xl">
-      <Link to="/products" className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+    <div className="max-w-2xl space-y-4">
+      <Link to="/products" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
         <ArrowLeft className="h-4 w-4" /> Back
       </Link>
 
@@ -29,6 +77,12 @@ export function ProductDetail() {
           </div>
           <div className="flex items-center gap-2">
             <Badge colorClass={PRODUCT_STATUS_COLORS[product.status]}>{product.status}</Badge>
+            <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>
+              <Pencil className="h-4 w-4" /> Edit
+            </Button>
+            <Button size="sm" variant="danger" onClick={() => setConfirmArchive(true)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -56,6 +110,62 @@ export function ProductDetail() {
           </div>
         )}
       </div>
+
+      {/* Edit modal */}
+      <Modal open={editing} onClose={() => setEditing(false)} title="Edit Product">
+        <div className="space-y-3">
+          <Input
+            label="Name *"
+            value={form.name ?? ''}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Price"
+              value={form.price ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+              type="number" min="0" step="0.01"
+            />
+            <Input
+              label="SKU"
+              value={form.sku ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
+            />
+          </div>
+          <Input
+            label="Category"
+            value={form.category ?? ''}
+            onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+          />
+          <Textarea
+            label="Description"
+            value={form.description ?? ''}
+            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            rows={2}
+          />
+          <Select
+            label="Status"
+            value={form.status ?? product.status}
+            onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as ProductStatus }))}
+            options={STATUS_OPTIONS}
+          />
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="secondary" onClick={() => setEditing(false)}>Cancel</Button>
+            <Button onClick={handleSave} loading={saving}>Save</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Archive confirmation */}
+      <Modal open={confirmArchive} onClose={() => setConfirmArchive(false)} title="Archive Product">
+        <p className="mb-4 text-sm text-gray-600">
+          Archive <strong>{product.name}</strong>? It will no longer appear in searches.
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={() => setConfirmArchive(false)}>Cancel</Button>
+          <Button variant="danger" onClick={handleArchive} loading={archiving}>Archive</Button>
+        </div>
+      </Modal>
     </div>
   )
 }
