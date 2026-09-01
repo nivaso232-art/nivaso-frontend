@@ -5,6 +5,7 @@ export interface ChatRequest {
   display_name?: string
   provider?: 'anthropic' | 'gemini'
   model?: string
+  admin_mode?: boolean
 }
 
 export interface ToolUsed {

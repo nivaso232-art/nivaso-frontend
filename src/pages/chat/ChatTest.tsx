@@ -164,6 +164,7 @@ export function ChatTest() {
       business_slug: slug,
       provider: opt.provider,
       model: opt.model,
+      admin_mode: true,
     })
   }, [input, isPending, selectedModel, userId, slug, send])
 
