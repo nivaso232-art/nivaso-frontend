@@ -30,6 +30,7 @@ export interface UpdateTicketPayload {
 }
 
 export interface ListTicketsParams {
+  status?: TicketStatus
   priority?: TicketPriority
   limit?: number
 }

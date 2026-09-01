@@ -11,10 +11,13 @@ import {
   Webhook,
   Activity,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@/utils/cn'
 
-const navGroups = [
+type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean }
+
+const navGroups: { label: string | null; items: NavItem[] }[] = [
   {
     label: null as string | null,
     items: [{ to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true }],

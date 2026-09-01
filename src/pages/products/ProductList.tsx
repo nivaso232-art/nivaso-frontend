@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { Package, Plus, Search, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useProducts, useCreateProduct, useUpdateProduct, useArchiveProduct } from '@/hooks/useProducts'
+import { useProducts, useCreateProduct } from '@/hooks/useProducts'
 import { useAppStore } from '@/store/appStore'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
