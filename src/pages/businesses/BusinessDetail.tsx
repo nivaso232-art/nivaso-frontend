@@ -343,23 +343,49 @@ function ChannelsTab({ slug }: { slug: string }) {
 
       {/* ── Web chat ── */}
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-indigo-500" />
             <h3 className="text-sm font-semibold text-gray-800">Web Chat</h3>
           </div>
           <ChannelStatus configured={true} />
         </div>
-        <p className="mb-2 text-xs text-gray-500">
-          Use the Chat Tester in the sidebar, or call the API directly:
-        </p>
-        <div className="rounded-lg bg-gray-50 px-3 py-2 text-xs font-mono text-gray-600 break-all flex items-center gap-1">
-          POST {backendHost}/web/chat
-          <CopyButton text={`${backendHost}/web/chat`} />
+
+        {/* Business slug — the unique identity for this business's web channel */}
+        <div className="mb-3 space-y-1">
+          <p className="text-xs font-medium text-gray-500">Business Slug</p>
+          <div className="flex items-center gap-2 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2">
+            <code className="flex-1 text-sm font-bold text-indigo-700">{slug}</code>
+            <CopyButton text={slug} />
+          </div>
+          <p className="text-xs text-gray-400">This slug uniquely identifies this business across all channels.</p>
         </div>
-        <p className="mt-2 text-xs text-gray-400">
-          Pass <code className="text-gray-600">"business_slug": "{slug}"</code> in the request body.
-        </p>
+
+        {/* Customer chat URL — share with customers */}
+        <div className="mb-3 space-y-1">
+          <p className="text-xs font-medium text-gray-500">Customer Chat URL</p>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+            <code className="flex-1 break-all text-xs text-gray-700">
+              {window.location.origin}/chat/{slug}
+            </code>
+            <CopyButton text={`${window.location.origin}/chat/${slug}`} />
+          </div>
+          <p className="text-xs text-gray-400">
+            Open this URL to chat as a customer. Share it or embed it on your website.
+          </p>
+        </div>
+
+        {/* API endpoint for custom integrations */}
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-gray-500">API Endpoint (custom embed)</p>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+            <code className="flex-1 text-xs text-gray-700">POST {backendHost}/web/chat</code>
+            <CopyButton text={`${backendHost}/web/chat`} />
+          </div>
+          <p className="text-xs text-gray-400">
+            Pass <code className="rounded bg-gray-100 px-1 text-gray-600">"business_slug": "{slug}"</code> in the JSON body.
+          </p>
+        </div>
       </div>
     </div>
   )
