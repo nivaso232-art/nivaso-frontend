@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Layout } from '@/components/layout/Layout'
 import { Dashboard } from '@/pages/Dashboard'
@@ -35,6 +35,7 @@ export default function App() {
 
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
 
             <Route path="businesses" element={<BusinessList />} />
             <Route path="businesses/:slug" element={<BusinessDetail />} />
@@ -57,6 +58,9 @@ export default function App() {
 
             <Route path="chat" element={<ChatTest />} />
           </Route>
+
+          {/* Unknown paths fall back to the dashboard */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
