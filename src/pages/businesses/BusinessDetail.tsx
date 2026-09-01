@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, Copy, Check, Bot, MessageSquare, Globe, Trash2 } from 'lucide-react'
@@ -14,7 +14,6 @@ import { Spinner } from '@/components/ui/Spinner'
 import { BUSINESS_STATUS_COLORS } from '@/utils/constants'
 import { cn } from '@/utils/cn'
 import type { BusinessStatus } from '@/types/business'
-import type { BusinessChannel } from '@/types/channel'
 
 const STATUS_OPTIONS: { value: BusinessStatus; label: string }[] = [
   { value: 'active', label: 'Active' },
