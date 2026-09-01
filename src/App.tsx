@@ -13,6 +13,7 @@ import { CustomerDetail } from '@/pages/customers/CustomerDetail'
 import { ArticleList } from '@/pages/knowledge/ArticleList'
 import { ArticleDetail } from '@/pages/knowledge/ArticleDetail'
 import { ChatTest } from '@/pages/chat/ChatTest'
+import { ChatDemo } from '@/pages/chat/ChatDemo'
 import { TenantDashboard } from '@/pages/dashboard/TenantDashboard'
 import { OrderList } from '@/pages/orders/OrderList'
 import { WebhookEventList } from '@/pages/webhooks/WebhookEventList'
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="agent-runs" element={<AgentRunList />} />
 
             <Route path="chat" element={<ChatTest />} />
+            <Route path="chat/demo" element={<ChatDemo />} />
           </Route>
         </Routes>
       </BrowserRouter>
