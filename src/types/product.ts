@@ -37,4 +37,5 @@ export interface ListProductsParams {
   category?: string
   limit?: number
   offset?: number
+  status?: ProductStatus
 }
