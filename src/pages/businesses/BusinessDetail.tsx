@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Save, Copy, Check, Bot, MessageSquare, Globe, Trash2 } from 'lucide-react'
+import { ArrowLeft, Save, Copy, Check, Bot, MessageSquare, Globe, Trash2, Cpu } from 'lucide-react'
 import { useBusiness, useUpdateBusiness } from '@/hooks/useBusinesses'
 import { channelsApi } from '@/api/channels'
+import { modelsApi } from '@/api/models'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -14,6 +15,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { BUSINESS_STATUS_COLORS } from '@/utils/constants'
 import { cn } from '@/utils/cn'
 import type { BusinessStatus } from '@/types/business'
+import type { ModelInfo } from '@/types/models'
 
 const STATUS_OPTIONS: { value: BusinessStatus; label: string }[] = [
   { value: 'active', label: 'Active' },
@@ -390,6 +392,90 @@ function ChannelsTab({ slug }: { slug: string }) {
   )
 }
 
+// ── Model picker ──────────────────────────────────────────────────────────────
+
+const TIER_LABELS: Record<string, string> = {
+  powerful: 'Powerful',
+  balanced: 'Balanced',
+  fast: 'Fast',
+}
+
+const TIER_COLORS: Record<string, string> = {
+  powerful: 'text-purple-600',
+  balanced: 'text-blue-600',
+  fast: 'text-green-600',
+}
+
+interface ModelPickerProps {
+  label: string
+  description: string
+  provider: string
+  model: string
+  availableModels: ModelInfo[]
+  onProviderChange: (p: string) => void
+  onModelChange: (m: string) => void
+  disabled?: boolean
+}
+
+function ModelPicker({
+  label,
+  description,
+  provider,
+  model,
+  availableModels,
+  onProviderChange,
+  onModelChange,
+  disabled = false,
+}: ModelPickerProps) {
+  const providers = [...new Set(availableModels.map((m) => m.provider))]
+  const filtered = availableModels.filter((m) => m.provider === provider)
+  const selected = availableModels.find((m) => m.provider === provider && m.model === model)
+
+  return (
+    <div className={cn('space-y-2', disabled && 'opacity-40 pointer-events-none')}>
+      <div>
+        <p className="text-xs font-medium text-gray-700">{label}</p>
+        <p className="text-xs text-gray-400">{description}</p>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <select
+          value={provider}
+          onChange={(e) => onProviderChange(e.target.value)}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+        >
+          <option value="">Server default</option>
+          {providers.map((p) => (
+            <option key={p} value={p}>
+              {p === 'anthropic' ? 'Anthropic (Claude)' : 'Google (Gemini)'}
+            </option>
+          ))}
+        </select>
+        <select
+          value={model}
+          onChange={(e) => onModelChange(e.target.value)}
+          disabled={!provider}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-50 disabled:text-gray-400"
+        >
+          <option value="">Select model…</option>
+          {filtered.map((m) => (
+            <option key={m.model} value={m.model}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      {selected && (
+        <p className="text-xs">
+          <span className={cn('font-medium', TIER_COLORS[selected.tier])}>
+            {TIER_LABELS[selected.tier]}
+          </span>
+          <span className="ml-1 text-gray-400">· {selected.model}</span>
+        </p>
+      )}
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export function BusinessDetail() {
@@ -408,6 +494,16 @@ export function BusinessDetail() {
   const [startHour, setStartHour] = useState('')
   const [endHour, setEndHour] = useState('')
   const [razorpayEnabled, setRazorpayEnabled] = useState(false)
+  const [agentProvider, setAgentProvider] = useState('')
+  const [agentModel, setAgentModel] = useState('')
+  const [fallbackProvider, setFallbackProvider] = useState('')
+  const [fallbackModel, setFallbackModel] = useState('')
+
+  const { data: availableModels = [] } = useQuery<ModelInfo[]>({
+    queryKey: ['admin-models'],
+    queryFn: modelsApi.list,
+    staleTime: Infinity,
+  })
 
   useEffect(() => {
     if (!business) return
@@ -420,6 +516,11 @@ export function BusinessDetail() {
     setStartHour(bh?.start ?? '')
     setEndHour(bh?.end ?? '')
     setRazorpayEnabled((s.razorpay_enabled as boolean) ?? false)
+    const ac = (s.agent as Record<string, string>) ?? {}
+    setAgentProvider(ac.provider ?? '')
+    setAgentModel(ac.model ?? '')
+    setFallbackProvider(ac.fallback_provider ?? '')
+    setFallbackModel(ac.fallback_model ?? '')
   }, [business])
 
   if (isLoading) return <Spinner />
@@ -441,14 +542,26 @@ export function BusinessDetail() {
 
   const handleSaveSettings = () => {
     const existing = business.settings as Record<string, unknown>
+    const agentCfg =
+      agentProvider && agentModel
+        ? {
+            provider: agentProvider,
+            model: agentModel,
+            ...(fallbackProvider && fallbackModel
+              ? { fallback_provider: fallbackProvider, fallback_model: fallbackModel }
+              : {}),
+          }
+        : undefined
     doSave({
       settings: {
         ...existing,
         agent_tone: agentTone.trim() || undefined,
         razorpay_enabled: razorpayEnabled,
-        business_hours: startHour || endHour
-          ? { ...((existing.business_hours as object) ?? {}), start: startHour, end: endHour }
-          : existing.business_hours,
+        business_hours:
+          startHour || endHour
+            ? { ...((existing.business_hours as object) ?? {}), start: startHour, end: endHour }
+            : existing.business_hours,
+        agent: agentCfg,
       },
     })
   }
@@ -536,6 +649,35 @@ export function BusinessDetail() {
               <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform', razorpayEnabled ? 'translate-x-5' : 'translate-x-0.5')} />
             </button>
           </div>
+          {/* ── AI Model Selection ───────────────────────────────────────── */}
+          <div className="rounded-lg border border-gray-200 p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <Cpu className="h-4 w-4 text-violet-500" />
+              <p className="text-sm font-semibold text-gray-700">AI Model</p>
+            </div>
+
+            <ModelPicker
+              label="Primary model"
+              description="Model used for every customer conversation."
+              provider={agentProvider}
+              model={agentModel}
+              availableModels={availableModels}
+              onProviderChange={(p) => { setAgentProvider(p); setAgentModel('') }}
+              onModelChange={setAgentModel}
+            />
+
+            <ModelPicker
+              label="Fallback model"
+              description="Used automatically when the primary model is rate-limited or overloaded."
+              provider={fallbackProvider}
+              model={fallbackModel}
+              availableModels={availableModels}
+              onProviderChange={(p) => { setFallbackProvider(p); setFallbackModel('') }}
+              onModelChange={setFallbackModel}
+              disabled={!agentProvider || !agentModel}
+            />
+          </div>
+
           <div>
             <p className="mb-2 text-sm font-medium text-gray-500">All Settings (raw)</p>
             <pre className="rounded-lg bg-gray-50 p-3 text-xs text-gray-700 overflow-auto max-h-40">
