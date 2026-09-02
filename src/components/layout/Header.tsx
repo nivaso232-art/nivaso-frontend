@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useBusinesses } from '@/hooks/useBusinesses'
 import { useAppStore } from '@/store/appStore'
 
@@ -8,6 +9,12 @@ interface HeaderProps {
 export function Header({ title }: HeaderProps) {
   const { data: businesses } = useBusinesses()
   const { selectedBusinessSlug, setSelectedBusinessSlug } = useAppStore()
+
+  useEffect(() => {
+    if (!selectedBusinessSlug && businesses?.length) {
+      setSelectedBusinessSlug(businesses[0].slug)
+    }
+  }, [businesses, selectedBusinessSlug, setSelectedBusinessSlug])
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">

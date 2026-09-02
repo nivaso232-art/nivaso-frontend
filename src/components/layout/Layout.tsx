@@ -9,6 +9,9 @@ const pageTitles: Record<string, string> = {
   '/support': 'Support Tickets',
   '/customers': 'Customers',
   '/knowledge': 'Knowledge Base',
+  '/orders': 'Orders',
+  '/webhooks': 'Webhook Events',
+  '/agent-runs': 'Agent Runs',
   '/chat': 'Chat Tester',
 }
 
