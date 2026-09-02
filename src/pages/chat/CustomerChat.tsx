@@ -31,10 +31,14 @@ function getOrCreateUserId(slug: string): string {
 
 const BASE = import.meta.env.VITE_API_BASE_URL || ''
 
-async function fetchConfig(slug: string) {
-  const r = await fetch(`${BASE}/web/config/${slug}`)
-  if (!r.ok) throw new Error('Business not found')
-  return r.json() as Promise<{ slug: string; name: string; razorpay_enabled: boolean; agent_tone: string }>
+// The backend exposes no public "business config" endpoint, so derive a display
+// title from the slug itself (e.g. "nivaso-gaming" → "Nivaso Gaming").
+function prettifySlug(slug: string) {
+  return slug
+    .split('-')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
 }
 
 async function fetchHistory(userId: string, slug: string) {
@@ -83,14 +87,6 @@ export function CustomerChat() {
   const [input, setInput] = useState('')
   const [localMessages, setLocalMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
 
-  // Business config (name, settings)
-  const { data: config, isError: configError } = useQuery({
-    queryKey: ['biz-config', slug],
-    queryFn: () => fetchConfig(slug!),
-    enabled: !!slug,
-    retry: 1,
-  })
-
   // Conversation history
   const { data: history = [], isLoading: historyLoading } = useQuery({
     queryKey: ['cust-history', slug, userId],
@@ -131,19 +127,6 @@ export function CustomerChat() {
     send(text)
   }
 
-  if (configError) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50 text-center">
-        <div>
-          <p className="text-lg font-semibold text-gray-700">Business not found</p>
-          <p className="mt-1 text-sm text-gray-400">
-            The link you followed may be incorrect. Check the business slug in the URL.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   const displayMessages = localMessages.length > 0 ? localMessages : history
 
   return (
@@ -156,7 +139,7 @@ export function CustomerChat() {
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-900">
-            {config?.name ?? slug ?? 'Chat'}
+            {slug ? prettifySlug(slug) : 'Chat'}
           </p>
           <p className="text-xs text-green-500 flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-green-400 inline-block" />

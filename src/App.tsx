@@ -16,6 +16,8 @@ import { OrderList } from '@/pages/orders/OrderList'
 import { WebhookEventList } from '@/pages/webhooks/WebhookEventList'
 import { AgentRunList } from '@/pages/agent-runs/AgentRunList'
 import { ChatTest } from '@/pages/chat/ChatTest'
+// WhatsApp-style admin demo (talks to the real agent), lives inside the admin layout
+import { ChatDemo } from '@/pages/chat/ChatDemo'
 // Customer-facing chat — standalone page, no admin chrome
 import { CustomerChat } from '@/pages/chat/CustomerChat'
 
@@ -57,6 +59,8 @@ export default function App() {
             <Route path="agent-runs" element={<AgentRunList />} />
 
             <Route path="chat" element={<ChatTest />} />
+            {/* Static /chat/demo outranks the dynamic /chat/:slug below */}
+            <Route path="chat/demo" element={<ChatDemo />} />
           </Route>
 
           {/* Unknown paths fall back to the dashboard */}
