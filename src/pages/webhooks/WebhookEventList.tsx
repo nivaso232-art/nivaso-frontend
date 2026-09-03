@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Webhook, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { webhookEventsApi } from '@/api/webhookEvents'
+import { FeatureGate } from '@/components/ui/FeatureGate'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatDate } from '@/utils/formatters'
+import { Flag } from '@/types/entitlements'
 import { cn } from '@/utils/cn'
 import type { WebhookStatus, WebhookSource } from '@/types/webhookEvent'
 
@@ -52,7 +54,15 @@ function SkeletonRow() {
 }
 
 export function WebhookEventList() {
-  const { selectedBusinessSlug: slug } = useAppStore()
+  return (
+    <FeatureGate flag={Flag.UI_WEBHOOK_EVENTS} label="Webhook Events Log">
+      <WebhookEventListInner />
+    </FeatureGate>
+  )
+}
+
+function WebhookEventListInner() {
+  const slug = useTenantSlug()
   const [source, setSource] = useState<WebhookSource | 'all'>('all')
   const [status, setStatus] = useState<WebhookStatus | 'all'>('all')
   const [page, setPage] = useState(0)

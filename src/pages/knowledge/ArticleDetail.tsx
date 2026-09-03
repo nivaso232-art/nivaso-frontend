@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Pencil, X } from 'lucide-react'
 import { useArticle, useUpdateArticle } from '@/hooks/useKnowledge'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -15,7 +15,7 @@ const STATUS_CYCLE: KnowledgeStatus[] = ['draft', 'published', 'archived']
 
 export function ArticleDetail() {
   const { articleId } = useParams<{ articleId: string }>()
-  const { selectedBusinessSlug: slug } = useAppStore()
+  const slug = useTenantSlug()
   const { data: article, isLoading } = useArticle(slug, articleId ?? '')
   const { mutate: update, isPending: saving } = useUpdateArticle(slug, articleId ?? '')
 

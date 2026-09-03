@@ -5,6 +5,7 @@ import { ArrowLeft, Save, Copy, Check, Bot, MessageSquare, Globe, Trash2, Cpu } 
 import { useBusiness, useUpdateBusiness } from '@/hooks/useBusinesses'
 import { channelsApi } from '@/api/channels'
 import { modelsApi } from '@/api/models'
+import { FeatureGate } from '@/components/ui/FeatureGate'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -12,10 +13,12 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { Modal } from '@/components/ui/Modal'
 import { Spinner } from '@/components/ui/Spinner'
+import { useEntitlementStore } from '@/store/entitlementStore'
 import { BUSINESS_STATUS_COLORS } from '@/utils/constants'
 import { cn } from '@/utils/cn'
 import type { BusinessStatus } from '@/types/business'
 import type { ModelInfo } from '@/types/models'
+import { Flag } from '@/types/entitlements'
 
 const STATUS_OPTIONS: { value: BusinessStatus; label: string }[] = [
   { value: 'active', label: 'Active' },
@@ -130,6 +133,7 @@ function ChannelsTab({ slug }: { slug: string }) {
     <div className="space-y-4">
 
       {/* ── Telegram ── */}
+      <FeatureGate flag={Flag.CHANNEL_TELEGRAM} label="Telegram Channel">
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -196,8 +200,10 @@ function ChannelsTab({ slug }: { slug: string }) {
           )}
         </div>
       </div>
+      </FeatureGate>
 
       {/* ── WhatsApp ── */}
+      <FeatureGate flag={Flag.CHANNEL_WHATSAPP} label="WhatsApp Channel">
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -274,8 +280,10 @@ function ChannelsTab({ slug }: { slug: string }) {
           </div>
         </div>
       </div>
+      </FeatureGate>
 
       {/* ── Razorpay ── */}
+      <FeatureGate flag={Flag.CHANNEL_PAYMENTS} label="Razorpay Payments">
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -341,6 +349,7 @@ function ChannelsTab({ slug }: { slug: string }) {
           </div>
         </div>
       </div>
+      </FeatureGate>
 
       {/* ── Web chat ── */}
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -505,6 +514,12 @@ export function BusinessDetail() {
     staleTime: Infinity,
   })
 
+  const entitlements = useEntitlementStore((s) => s.entitlements)
+  const allowedModelIds = (entitlements?.flags[Flag.AI_MODELS] as string[] | null) ?? null
+  const permittedModels = allowedModelIds
+    ? availableModels.filter((m) => allowedModelIds.includes(m.model))
+    : availableModels
+
   useEffect(() => {
     if (!business) return
     setName(business.name)
@@ -576,7 +591,7 @@ export function BusinessDetail() {
 
   return (
     <div className="max-w-2xl space-y-4">
-      <Link to="/businesses" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+      <Link to="/" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
         <ArrowLeft className="h-4 w-4" /> Back
       </Link>
 
@@ -649,7 +664,8 @@ export function BusinessDetail() {
               <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform', razorpayEnabled ? 'translate-x-5' : 'translate-x-0.5')} />
             </button>
           </div>
-          {/* ── AI Model Selection ───────────────────────────────────────── */}
+          {/* ── AI Model Selection (gated by ai.custom_model_picker) ─────── */}
+          <FeatureGate flag={Flag.AI_CUSTOM_MODEL_PICKER} label="Custom AI Model Selection">
           <div className="rounded-lg border border-gray-200 p-4 space-y-4">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-violet-500" />
@@ -661,7 +677,7 @@ export function BusinessDetail() {
               description="Model used for every customer conversation."
               provider={agentProvider}
               model={agentModel}
-              availableModels={availableModels}
+              availableModels={permittedModels}
               onProviderChange={(p) => { setAgentProvider(p); setAgentModel('') }}
               onModelChange={setAgentModel}
             />
@@ -671,12 +687,13 @@ export function BusinessDetail() {
               description="Used automatically when the primary model is rate-limited or overloaded."
               provider={fallbackProvider}
               model={fallbackModel}
-              availableModels={availableModels}
+              availableModels={permittedModels}
               onProviderChange={(p) => { setFallbackProvider(p); setFallbackModel('') }}
               onModelChange={setFallbackModel}
               disabled={!agentProvider || !agentModel}
             />
           </div>
+          </FeatureGate>
 
           <div>
             <p className="mb-2 text-sm font-medium text-gray-500">All Settings (raw)</p>

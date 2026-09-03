@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Save } from 'lucide-react'
 import { useTicket, useUpdateTicket } from '@/hooks/useSupport'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -29,7 +29,7 @@ const PRIORITY_OPTIONS: { value: TicketPriority; label: string }[] = [
 
 export function TicketDetail() {
   const { reference } = useParams<{ reference: string }>()
-  const { selectedBusinessSlug } = useAppStore()
+  const selectedBusinessSlug = useTenantSlug()
   const { data: ticket, isLoading } = useTicket(selectedBusinessSlug, reference ?? '')
   const { mutate: update, isPending } = useUpdateTicket(selectedBusinessSlug, reference ?? '')
 

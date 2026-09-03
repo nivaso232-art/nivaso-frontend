@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Plus, ChevronDown, Check, CheckCheck } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { chatApi } from '@/api/chat'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { cn } from '@/utils/cn'
 import type { SessionOut } from '@/types/chat'
 
@@ -59,7 +59,7 @@ function ContentBody({ text }: { text: string }) {
 }
 
 export function ChatDemo() {
-  const { selectedBusinessSlug } = useAppStore()
+  const selectedBusinessSlug = useTenantSlug()
   const slug = selectedBusinessSlug || undefined
   const qc = useQueryClient()
 

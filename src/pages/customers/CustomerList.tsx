@@ -1,12 +1,12 @@
 import { Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCustomers } from '@/hooks/useCustomers'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { Spinner } from '@/components/ui/Spinner'
 import { EmptyState } from '@/components/ui/EmptyState'
 
 export function CustomerList() {
-  const { selectedBusinessSlug } = useAppStore()
+  const selectedBusinessSlug = useTenantSlug()
   const { data: customers, isLoading } = useCustomers(selectedBusinessSlug)
 
   if (isLoading) return <Spinner />

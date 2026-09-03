@@ -10,14 +10,6 @@ export interface Business {
   settings: Record<string, unknown>
 }
 
-export interface CreateBusinessPayload {
-  slug: string
-  name: string
-  description?: string
-  timezone?: string
-  settings?: Record<string, unknown>
-}
-
 export interface UpdateBusinessPayload {
   name?: string
   description?: string

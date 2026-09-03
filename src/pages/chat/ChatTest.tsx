@@ -2,12 +2,14 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Bot, User, RefreshCw, Plus, MessageSquare } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { chatApi } from '@/api/chat'
-import { useAppStore } from '@/store/appStore'
+import { modelsApi } from '@/api/models'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { cn } from '@/utils/cn'
-import { MODEL_OPTIONS } from '@/types/chat'
-import type { ModelOption, SessionOut } from '@/types/chat'
+import type { SessionOut } from '@/types/chat'
+import { Flag, flagArray } from '@/types/entitlements'
+import { useEntitlementStore } from '@/store/entitlementStore'
 import { formatDate } from '@/utils/formatters'
 
 interface DisplayMessage {
@@ -18,16 +20,10 @@ interface DisplayMessage {
   fromHistory?: boolean
 }
 
-const modelSelectOptions = MODEL_OPTIONS.map((m) => ({
-  value: `${m.provider}::${m.model}`,
-  label: m.label,
-}))
-
-function parseModelOption(value: string): ModelOption {
+function parseModel(value: string): { provider?: string; model?: string } {
+  if (!value) return {}
   const [provider, model] = value.split('::')
-  return (
-    MODEL_OPTIONS.find((m) => m.provider === provider && m.model === model) ?? MODEL_OPTIONS[0]
-  )
+  return { provider, model }
 }
 
 function newUserId() {
@@ -90,12 +86,31 @@ function SessionCard({
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function ChatTest() {
-  const { selectedBusinessSlug } = useAppStore()
+  const selectedBusinessSlug = useTenantSlug()
   const qc = useQueryClient()
   const [userId, setUserId] = useState(newUserId)
-  const [selectedModel, setSelectedModel] = useState(
-    `${MODEL_OPTIONS[0].provider}::${MODEL_OPTIONS[0].model}`,
-  )
+  const [selectedModel, setSelectedModel] = useState('')
+
+  // Fetch all platform models from the backend, then filter by plan entitlement.
+  const entitlements = useEntitlementStore((s) => s.entitlements)
+  const { data: allModels = [] } = useQuery({
+    queryKey: ['models'],
+    queryFn: modelsApi.list,
+    staleTime: 5 * 60_000,
+  })
+
+  const allowedModelIds = flagArray(entitlements, Flag.AI_MODELS)
+  const availableModels = allowedModelIds === null
+    ? allModels
+    : allModels.filter((m) => allowedModelIds.includes(m.model))
+
+  const modelSelectOptions = [
+    { value: '', label: 'Default (plan default)' },
+    ...availableModels.map((m) => ({
+      value: `${m.provider}::${m.model}`,
+      label: m.label,
+    })),
+  ]
   const [messages, setMessages] = useState<DisplayMessage[]>([])
   const [input, setInput] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -155,15 +170,15 @@ export function ChatTest() {
   const handleSend = useCallback(() => {
     const text = input.trim()
     if (!text || isPending) return
-    const opt = parseModelOption(selectedModel)
+    const { provider, model } = parseModel(selectedModel)
     setMessages((prev) => [...prev, { role: 'user', content: text }])
     setInput('')
     send({
       message: text,
       user_id: userId,
       business_slug: slug,
-      provider: opt.provider,
-      model: opt.model,
+      provider,
+      model,
       admin_mode: true,
     })
   }, [input, isPending, selectedModel, userId, slug, send])

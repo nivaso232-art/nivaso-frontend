@@ -1,10 +1,12 @@
 import { Activity } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { agentRunsApi } from '@/api/agentRuns'
+import { FeatureGate } from '@/components/ui/FeatureGate'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { formatDate } from '@/utils/formatters'
+import { Flag } from '@/types/entitlements'
 import { cn } from '@/utils/cn'
 
 function SkeletonRow() {
@@ -18,7 +20,15 @@ function SkeletonRow() {
 }
 
 export function AgentRunList() {
-  const { selectedBusinessSlug: slug } = useAppStore()
+  return (
+    <FeatureGate flag={Flag.UI_AGENT_RUNS} label="Agent Runs Log">
+      <AgentRunListInner />
+    </FeatureGate>
+  )
+}
+
+function AgentRunListInner() {
+  const slug = useTenantSlug()
 
   const { data: runs, isLoading } = useQuery({
     queryKey: ['agent-runs', slug],

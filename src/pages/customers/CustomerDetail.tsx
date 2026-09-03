@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Bot, User } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useCustomer } from '@/hooks/useCustomers'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { Spinner } from '@/components/ui/Spinner'
 import { customersApi } from '@/api/customers'
 import { chatApi } from '@/api/chat'
@@ -10,7 +10,7 @@ import { cn } from '@/utils/cn'
 
 export function CustomerDetail() {
   const { customerId } = useParams<{ customerId: string }>()
-  const { selectedBusinessSlug: slug } = useAppStore()
+  const slug = useTenantSlug()
   const { data: customer, isLoading } = useCustomer(slug, customerId ?? '')
 
   // Fetch channels to find the web external_user_id

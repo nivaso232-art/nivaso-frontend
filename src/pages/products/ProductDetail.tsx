@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import { useProduct, useUpdateProduct, useArchiveProduct } from '@/hooks/useProducts'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -23,7 +23,7 @@ const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
 export function ProductDetail() {
   const { productId } = useParams<{ productId: string }>()
   const navigate = useNavigate()
-  const { selectedBusinessSlug: slug } = useAppStore()
+  const slug = useTenantSlug()
   const { data: product, isLoading } = useProduct(slug, productId ?? '')
   const { mutate: update, isPending: saving } = useUpdateProduct(slug, productId ?? '')
   const { mutate: archive, isPending: archiving } = useArchiveProduct(slug)
