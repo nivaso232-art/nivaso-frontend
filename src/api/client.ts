@@ -1,20 +1,40 @@
 import axios from 'axios'
+import { useAuthStore } from '@/store/authStore'
 
-// In dev the Vite proxy forwards /admin, /web, /health to localhost:8000 —
-// so we use relative paths here. In prod set VITE_API_BASE_URL to the real URL.
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 })
 
+// ── Request: attach JWT or fall back to dev API key ──────────────────────────
 apiClient.interceptors.request.use((config) => {
-  const key = import.meta.env.VITE_INTERNAL_API_KEY
-  if (key) {
-    config.headers['X-Internal-Key'] = key
+  const token = useAuthStore.getState().token
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
+  } else {
+    const key = import.meta.env.VITE_INTERNAL_API_KEY
+    if (key) config.headers['X-Internal-Key'] = key
   }
   return config
 })
+
+// ── Response: on 401, clear auth and redirect to login ───────────────────────
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const { token, clearAuth } = useAuthStore.getState()
+      // Only redirect when we had a JWT — avoid redirect loops on the login
+      // page itself (which fires /auth/login and legitimately gets 401 on
+      // bad credentials; that shouldn't kick the user to another login page).
+      if (token) {
+        clearAuth()
+        const next = encodeURIComponent(window.location.pathname)
+        window.location.replace(`/login?expired=1&next=${next}`)
+      }
+    }
+    return Promise.reject(error)
+  },
+)
 
 export default apiClient
