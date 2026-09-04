@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Save, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Save, AlertTriangle, Info } from 'lucide-react'
 import { superAdminApi } from '@/api/superAdmin'
 import { cn } from '@/utils/cn'
 
@@ -20,16 +20,63 @@ const STATUS_COLORS: Record<string, string> = {
   inactive:  'bg-gray-700 text-gray-400',
 }
 
+// Impact map — what enabling/disabling each flag affects
+const FLAG_IMPACT: Record<string, { tools?: string[]; ui?: string[]; note: string }> = {
+  'orders.enabled': {
+    tools: ['create_order', 'list_my_orders', 'get_order_status', 'cancel_order', 'get_fulfillment_details'],
+    ui: ['Orders page in admin sidebar'],
+    note: 'Disabling blocks all order creation. Required before payments can be used.',
+  },
+  'channel.payments': {
+    tools: ['create_payment_link', 'check_payment_status', 'get_order_payment_history', 'retry_payment'],
+    note: 'Disabling removes all payment link generation. orders.enabled must also be on.',
+  },
+  'support.tickets_enabled': {
+    tools: ['create_support_ticket', 'list_open_tickets', 'update_support_ticket'],
+    ui: ['Support Tickets page'],
+    note: 'Disabling removes the AI escalation path. Customers cannot reach humans via chat.',
+  },
+  'credentials.enabled': {
+    tools: ['get_my_credentials', 'check_product_availability'],
+    note: 'Required for digital delivery (game accounts, software keys). Enables credential vault.',
+  },
+  'channel.whatsapp': {
+    note: 'Enables WhatsApp Business channel. Customers can chat via WhatsApp.',
+  },
+  'channel.telegram': {
+    note: 'Enables Telegram Bot channel. Customers can chat via Telegram.',
+  },
+  'channel.web': {
+    note: 'Disabling blocks the web chat embed. Customer-facing widget stops working.',
+  },
+  'ai.custom_model_picker': {
+    ui: ['AI Model Selection section in Business Settings'],
+    note: 'Shown automatically when plan has 2+ models. This flag is now secondary to model count.',
+  },
+  'ui.agent_runs': {
+    ui: ['Agent Runs log page'],
+    note: 'Business admin can see AI conversation logs, token usage, and latency.',
+  },
+  'ui.webhook_events': {
+    ui: ['Webhook Events page'],
+    note: 'Business admin can monitor incoming WhatsApp/Telegram/Razorpay webhooks.',
+  },
+  'ui.dashboard_customize': {
+    ui: ['Customize Dashboard button'],
+    note: 'Business admin can rearrange which widgets appear on their dashboard.',
+  },
+}
+
 // Flags grouped for the UI
 const BOOLEAN_FLAGS = [
-  { key: 'ai.custom_model_picker',   label: 'Custom model picker' },
-  { key: 'channel.web',              label: 'Web chat' },
-  { key: 'channel.whatsapp',         label: 'WhatsApp' },
-  { key: 'channel.telegram',         label: 'Telegram' },
+  { key: 'channel.web',              label: 'Web chat channel' },
+  { key: 'channel.whatsapp',         label: 'WhatsApp channel' },
+  { key: 'channel.telegram',         label: 'Telegram channel' },
   { key: 'channel.payments',         label: 'Razorpay payments' },
   { key: 'orders.enabled',           label: 'Order management' },
   { key: 'support.tickets_enabled',  label: 'Support tickets' },
   { key: 'credentials.enabled',      label: 'Credential vault' },
+  { key: 'ai.custom_model_picker',   label: 'Custom model picker' },
   { key: 'ui.dashboard_customize',   label: 'Dashboard customization' },
   { key: 'ui.agent_runs',            label: 'Agent runs log' },
   { key: 'ui.webhook_events',        label: 'Webhook events log' },
@@ -184,41 +231,87 @@ export function SuperAdminBusinessDetail() {
         {/* Boolean flags */}
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-600">Access Flags</p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {BOOLEAN_FLAGS.map(({ key, label }) => {
-              const planDefault = biz.resolved[key]
+              const effective = biz.resolved[key]  // current live value
               const override = overrides[key]
               const hasOverride = key in overrides
+              const impact = FLAG_IMPACT[key]
+
+              // What will the value be after saving overrides?
+              const pendingValue = hasOverride ? override : effective
+
               return (
-                <div key={key} className="flex items-center gap-3">
-                  <span className="flex-1 text-xs text-gray-400">{label}</span>
-                  <span className="text-xs text-gray-600">
-                    Plan: {planDefault === null ? '∞' : String(planDefault)}
-                  </span>
-                  {/* Three-state: default / force-on / force-off */}
-                  <div className="flex gap-1">
-                    {(['default', 'on', 'off'] as const).map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() =>
-                          setBoolOverride(
-                            key,
-                            opt === 'default' ? undefined : opt === 'on'
-                          )
-                        }
-                        className={cn(
-                          'rounded px-2 py-0.5 text-xs transition-colors',
-                          (opt === 'default' && !hasOverride) ||
-                          (opt === 'on' && override === true) ||
-                          (opt === 'off' && override === false)
-                            ? 'bg-violet-700 text-white'
-                            : 'bg-gray-800 text-gray-500 hover:bg-gray-700',
+                <div key={key} className="rounded-lg border border-gray-800 p-3 space-y-2">
+                  <div className="flex items-center gap-3">
+                    {/* Label + current state */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-gray-300">{label}</span>
+                        <span className={cn(
+                          'rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                          effective === true  ? 'bg-green-900 text-green-300' :
+                          effective === false ? 'bg-red-900 text-red-400'    :
+                          'bg-gray-700 text-gray-400',
+                        )}>
+                          {effective === null ? '∞' : effective === true ? 'on' : effective === false ? 'off' : String(effective)}
+                        </span>
+                        {hasOverride && (
+                          <span className="rounded-full bg-amber-900 px-1.5 py-0.5 text-[10px] text-amber-300">
+                            overridden
+                          </span>
                         )}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                      </div>
+                      <p className="mt-0.5 text-[10px] font-mono text-gray-600">{key}</p>
+                    </div>
+
+                    {/* Three-state toggle */}
+                    <div className="flex gap-1 shrink-0">
+                      {(['default', 'on', 'off'] as const).map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() =>
+                            setBoolOverride(key, opt === 'default' ? undefined : opt === 'on')
+                          }
+                          className={cn(
+                            'rounded px-2 py-0.5 text-xs transition-colors',
+                            (opt === 'default' && !hasOverride) ||
+                            (opt === 'on' && override === true) ||
+                            (opt === 'off' && override === false)
+                              ? 'bg-violet-700 text-white'
+                              : 'bg-gray-800 text-gray-500 hover:bg-gray-700',
+                          )}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* Impact hint */}
+                  {impact && (
+                    <div className="flex items-start gap-1.5 text-[10px] text-gray-500">
+                      <Info className="h-3 w-3 shrink-0 mt-0.5 text-gray-600" />
+                      <div className="space-y-0.5">
+                        <p>{impact.note}</p>
+                        {pendingValue === false && impact.tools && impact.tools.length > 0 && (
+                          <p className="text-red-500">
+                            Disabling removes AI tools: {impact.tools.join(', ')}
+                          </p>
+                        )}
+                        {pendingValue === true && impact.tools && impact.tools.length > 0 && (
+                          <p className="text-green-500">
+                            Enabling unlocks AI tools: {impact.tools.join(', ')}
+                          </p>
+                        )}
+                        {impact.ui && (
+                          <p className="text-blue-500/70">
+                            UI: {impact.ui.join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })}
