@@ -266,7 +266,7 @@ export function buildMockOverview(
       errorRate: jitter(0.012, 0.008),
       toolCallsPerTurn: jitter(2.3, 0.4),
       runs: Math.round(conversations * jitter(3.1, 0.4)),
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
     },
     ticketReasons,
   }
