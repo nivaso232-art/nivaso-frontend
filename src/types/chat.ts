@@ -3,7 +3,7 @@ export interface ChatRequest {
   user_id?: string
   business_slug?: string
   display_name?: string
-  provider?: 'anthropic' | 'gemini'
+  provider?: 'anthropic' | 'gemini' | 'groq'
   model?: string
   admin_mode?: boolean
 }
@@ -29,7 +29,7 @@ export interface HistoryMessage {
 }
 
 export interface ModelOption {
-  provider: 'anthropic' | 'gemini'
+  provider: 'anthropic' | 'gemini' | 'groq'
   model: string
   label: string
 }
