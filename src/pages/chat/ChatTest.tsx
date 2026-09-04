@@ -197,7 +197,8 @@ export function ChatTest() {
     setMessages([])
   }, [])
 
-  // Start a brand new session (new user_id = new conversation thread)
+  // Start a fresh session — the backend tags all admin_mode sessions as test
+  // customers regardless of user_id, so the frontend can use any stable ID.
   const handleNewSession = useCallback(() => {
     setUserId(newUserId())
     setMessages([])
