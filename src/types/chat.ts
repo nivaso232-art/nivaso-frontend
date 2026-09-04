@@ -45,10 +45,17 @@ export interface SessionOut {
 // Used by the super-admin chat (unrestricted model picker); the client-admin
 // chat (ChatTest) fetches from /admin/models and filters by plan entitlement.
 export const MODEL_OPTIONS: ModelOption[] = [
-  { provider: 'anthropic', model: 'claude-opus-4-7',          label: 'Claude Opus 4' },
-  { provider: 'anthropic', model: 'claude-sonnet-4-6',        label: 'Claude Sonnet 4' },
-  { provider: 'anthropic', model: 'claude-haiku-4-5-20251001',label: 'Claude Haiku 4' },
-  { provider: 'gemini',    model: 'gemini-3.1-pro-preview',   label: 'Gemini 3.1 Pro' },
-  { provider: 'gemini',    model: 'gemini-3.6-flash',         label: 'Gemini 3.6 Flash' },
-  { provider: 'gemini',    model: 'gemini-3.5-flash-lite',    label: 'Gemini 3.5 Flash Lite' },
+  // Anthropic — Claude
+  { provider: 'anthropic', model: 'claude-opus-4-7',                      label: 'Claude Opus 4' },
+  { provider: 'anthropic', model: 'claude-sonnet-4-6',                    label: 'Claude Sonnet 4' },
+  { provider: 'anthropic', model: 'claude-haiku-4-5-20251001',            label: 'Claude Haiku 4' },
+  // Google — Gemini
+  { provider: 'gemini',    model: 'gemini-3.1-pro-preview',               label: 'Gemini 3.1 Pro' },
+  { provider: 'gemini',    model: 'gemini-3.6-flash',                     label: 'Gemini 3.6 Flash' },
+  { provider: 'gemini',    model: 'gemini-3.5-flash-lite',                label: 'Gemini 3.5 Flash Lite' },
+  // Groq — fast inference
+  { provider: 'groq',      model: 'openai/gpt-oss-120b',                  label: 'GPT-OSS 120B (Groq)' },
+  { provider: 'groq',      model: 'llama-3.3-70b-versatile',              label: 'Llama 3.3 70B (Groq)' },
+  { provider: 'groq',      model: 'llama3-groq-70b-8192-tool-use-preview',label: 'Llama 3 70B Tool Use (Groq)' },
+  { provider: 'groq',      model: 'deepseek-r1-distill-llama-70b',        label: 'DeepSeek R1 70B (Groq)' },
 ]
