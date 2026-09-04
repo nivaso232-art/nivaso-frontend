@@ -104,13 +104,21 @@ export function ChatTest() {
     ? allModels
     : allModels.filter((m) => allowedModelIds.includes(m.model))
 
-  const modelSelectOptions = [
-    { value: '', label: 'Default (plan default)' },
-    ...availableModels.map((m) => ({
-      value: `${m.provider}::${m.model}`,
-      label: m.label,
-    })),
-  ]
+  // Auto-select the first plan-allowed model once the list loads.
+  // This avoids sending an empty model string which makes the backend fall
+  // back to the global default (often a different provider than the plan's
+  // configured models), causing provider-mismatch errors.
+  useEffect(() => {
+    if (availableModels.length > 0 && !selectedModel) {
+      const first = availableModels[0]
+      setSelectedModel(`${first.provider}::${first.model}`)
+    }
+  }, [availableModels, selectedModel])
+
+  const modelSelectOptions = availableModels.map((m) => ({
+    value: `${m.provider}::${m.model}`,
+    label: m.label,
+  }))
   const [messages, setMessages] = useState<DisplayMessage[]>([])
   const [input, setInput] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)

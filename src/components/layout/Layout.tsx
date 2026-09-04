@@ -33,7 +33,7 @@ export function Layout() {
     queryKey: ['entitlements', slug],
     queryFn: () => entitlementsApi.get(slug),
     enabled: !!slug,
-    staleTime: 60_000,
+    staleTime: 15_000,
     retry: 1,
   })
 

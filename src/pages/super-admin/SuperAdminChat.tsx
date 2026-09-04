@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Bot, ShieldCheck, Trash2, Loader2 } from 'lucide-react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { superAdminApi } from '@/api/superAdmin'
+import { modelsApi } from '@/api/models'
 import { cn } from '@/utils/cn'
-import { MODEL_OPTIONS } from '@/types/chat'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -20,20 +20,10 @@ interface ApiMessage {
   content: string
 }
 
-// ── Model options ─────────────────────────────────────────────────────────────
-
-const modelOptions = [
-  { value: '', label: 'Default model' },
-  ...MODEL_OPTIONS.map((m) => ({
-    value: `${m.provider}::${m.model}`,
-    label: m.label,
-  })),
-]
-
-function parseModel(value: string): { model?: string } {
+function parseModel(value: string): { provider?: string; model?: string } {
   if (!value) return {}
-  const [, model] = value.split('::')
-  return { model }
+  const [provider, model] = value.split('::')
+  return { provider, model }
 }
 
 // ── Message bubble ─────────────────────────────────────────────────────────────
@@ -120,6 +110,21 @@ export function SuperAdminChat() {
   const [selectedModel, setSelectedModel] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Fetch live model list from backend so deprecated models never appear.
+  const { data: allModels = [] } = useQuery({
+    queryKey: ['models'],
+    queryFn: modelsApi.list,
+    staleTime: 5 * 60_000,
+  })
+
+  const modelOptions = [
+    { value: '', label: 'Default model' },
+    ...allModels.map((m) => ({
+      value: `${m.provider}::${m.model}`,
+      label: m.label,
+    })),
+  ]
 
   // Auto-scroll
   useEffect(() => {
