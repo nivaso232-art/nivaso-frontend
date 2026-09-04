@@ -125,7 +125,7 @@ function ChannelsTab({ slug }: { slug: string }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['channels', slug] }),
   })
 
-  const backendHost = window.location.origin.replace('5173', '8000').replace('3000', '8000')
+  const backendHost = import.meta.env.VITE_API_BASE_URL || window.location.origin
 
   if (isLoading) return <div className="py-8 text-center text-sm text-gray-400">Loading channels…</div>
 
@@ -155,10 +155,9 @@ function ChannelsTab({ slug }: { slug: string }) {
         </div>
 
         {tgChannel && (
-          <div className="mb-3 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
-            <span className="font-medium">Webhook URL to register:</span>
-            <span className="ml-1 font-mono break-all">{backendHost}/webhooks/telegram/{slug}</span>
-            <CopyButton text={`${backendHost}/webhooks/telegram/${slug}`} />
+          <div className="mb-3 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
+            <span className="font-medium">Webhook registered automatically</span>
+            <span className="ml-1 font-mono text-green-600 break-all">{backendHost}/webhooks/telegram/{slug}</span>
           </div>
         )}
 
@@ -191,11 +190,7 @@ function ChannelsTab({ slug }: { slug: string }) {
           </div>
           {!tgChannel && (
             <p className="text-xs text-gray-400">
-              After saving, register the webhook on your phone:
-              <br />
-              <code className="text-gray-600 break-all">
-                https://api.telegram.org/bot{'<TOKEN>'}/setWebhook?url={backendHost}/webhooks/telegram/{slug}&secret_token={'<SECRET>'}
-              </code>
+              The webhook will be registered with Telegram automatically when you connect.
             </p>
           )}
         </div>
