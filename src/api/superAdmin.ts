@@ -21,7 +21,12 @@ superAdminClient.interceptors.request.use((config) => {
 
 // ── Response: on 401, clear auth and redirect to super-admin login ───────────
 superAdminClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (typeof response.data === 'string' && response.data.trimStart().startsWith('<')) {
+      return Promise.reject(new Error('API returned HTML — check VITE_API_BASE_URL.'))
+    }
+    return response
+  },
   (error) => {
     if (error.response?.status === 401) {
       const { token, clearAuth } = useAuthStore.getState()
