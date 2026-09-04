@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { TicketCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTickets } from '@/hooks/useSupport'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { TICKET_PRIORITY_COLORS, TICKET_STATUS_LABELS } from '@/utils/constants'
@@ -30,7 +30,7 @@ function SkeletonRow() {
 }
 
 export function TicketList() {
-  const { selectedBusinessSlug } = useAppStore()
+  const selectedBusinessSlug = useTenantSlug()
   const [tab, setTab] = useState<TicketStatus | 'open'>('open')
   const { data: tickets, isLoading } = useTickets(
     selectedBusinessSlug,

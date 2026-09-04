@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ShoppingCart } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { ordersApi } from '@/api/orders'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -39,7 +39,7 @@ function SkeletonRow() {
 }
 
 export function OrderList() {
-  const { selectedBusinessSlug: slug } = useAppStore()
+  const slug = useTenantSlug()
   const [tab, setTab] = useState<OrderStatus | 'all'>('all')
 
   const { data: orders, isLoading } = useQuery({

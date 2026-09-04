@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { businessesApi } from '@/api/businesses'
-import type { CreateBusinessPayload, UpdateBusinessPayload } from '@/types/business'
+import type { UpdateBusinessPayload } from '@/types/business'
 
-export function useBusinesses() {
-  return useQuery({ queryKey: ['businesses'], queryFn: businessesApi.list })
+export function useBusinesses(enabled = true) {
+  return useQuery({ queryKey: ['businesses'], queryFn: businessesApi.list, enabled })
 }
 
 export function useBusiness(slug: string) {
@@ -11,14 +11,6 @@ export function useBusiness(slug: string) {
     queryKey: ['businesses', slug],
     queryFn: () => businessesApi.get(slug),
     enabled: !!slug,
-  })
-}
-
-export function useCreateBusiness() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (payload: CreateBusinessPayload) => businessesApi.create(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['businesses'] }),
   })
 }
 

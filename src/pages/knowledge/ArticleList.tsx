@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { BookOpen, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useArticles, useCreateArticle } from '@/hooks/useKnowledge'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -14,6 +14,8 @@ import { KNOWLEDGE_STATUS_COLORS } from '@/utils/constants'
 import { cn } from '@/utils/cn'
 import { X } from 'lucide-react'
 import type { KnowledgeStatus } from '@/types/knowledge'
+import { useEntitlementStore } from '@/store/entitlementStore'
+import { flagLimit, Flag } from '@/types/entitlements'
 
 const STATUS_TABS: { value: KnowledgeStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -38,9 +40,13 @@ function SkeletonRow() {
 }
 
 export function ArticleList() {
-  const { selectedBusinessSlug: slug } = useAppStore()
+  const slug = useTenantSlug()
   const { data: articles, isLoading } = useArticles(slug)
   const { mutate: create, isPending: creating } = useCreateArticle(slug)
+
+  const entitlements = useEntitlementStore((s) => s.entitlements)
+  const articleLimit = flagLimit(entitlements, Flag.KNOWLEDGE_LIMIT)
+  const atLimit = articleLimit !== null && (articles?.length ?? 0) >= articleLimit
 
   const [tab, setTab] = useState<KnowledgeStatus | 'all'>('all')
   const [showCreate, setShowCreate] = useState(false)
@@ -96,9 +102,16 @@ export function ArticleList() {
             </button>
           ))}
         </div>
-        <Button size="sm" onClick={() => setShowCreate(true)}>
-          <Plus className="h-4 w-4" /> New Article
-        </Button>
+        <div className="flex items-center gap-2">
+          {articleLimit !== null && (
+            <span className="text-xs text-gray-400">
+              {articles?.length ?? 0} / {articleLimit}
+            </span>
+          )}
+          <Button size="sm" onClick={() => setShowCreate(true)} disabled={atLimit}>
+            <Plus className="h-4 w-4" /> New Article
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
@@ -108,9 +121,11 @@ export function ArticleList() {
           title="No articles"
           description="Add knowledge base articles for the AI to use."
           action={
-            <Button size="sm" onClick={() => setShowCreate(true)}>
-              <Plus className="h-4 w-4" /> New Article
-            </Button>
+            !atLimit ? (
+              <Button size="sm" onClick={() => setShowCreate(true)}>
+                <Plus className="h-4 w-4" /> New Article
+              </Button>
+            ) : undefined
           }
         />
       ) : (

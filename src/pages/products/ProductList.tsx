@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { Package, Plus, Search, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useProducts, useCreateProduct } from '@/hooks/useProducts'
-import { useAppStore } from '@/store/appStore'
+import { useTenantSlug } from '@/hooks/useTenantSlug'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -14,6 +14,8 @@ import { PRODUCT_STATUS_COLORS } from '@/utils/constants'
 import { formatCurrency } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 import type { ProductStatus, CreateProductPayload } from '@/types/product'
+import { useEntitlementStore } from '@/store/entitlementStore'
+import { flagLimit, Flag } from '@/types/entitlements'
 
 const STATUS_TABS: { value: ProductStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -47,9 +49,13 @@ function SkeletonRow() {
 }
 
 export function ProductList() {
-  const { selectedBusinessSlug: slug } = useAppStore()
+  const slug = useTenantSlug()
   const { data: products, isLoading } = useProducts(slug)
   const { mutate: create, isPending: creating } = useCreateProduct(slug)
+
+  const entitlements = useEntitlementStore((s) => s.entitlements)
+  const productLimit = flagLimit(entitlements, Flag.PRODUCTS_LIMIT)
+  const atLimit = productLimit !== null && (products?.length ?? 0) >= productLimit
 
   const [search, setSearch] = useState('')
   const [statusTab, setStatusTab] = useState<ProductStatus | 'all'>('all')
@@ -135,10 +141,17 @@ export function ProductList() {
               </button>
             )}
           </div>
-          <Button size="sm" onClick={() => setShowCreate(true)}>
-            <Plus className="h-4 w-4" />
-            New Product
-          </Button>
+          <div className="flex items-center gap-2">
+            {productLimit !== null && (
+              <span className="text-xs text-gray-400">
+                {products?.length ?? 0} / {productLimit}
+              </span>
+            )}
+            <Button size="sm" onClick={() => setShowCreate(true)} disabled={atLimit}>
+              <Plus className="h-4 w-4" />
+              New Product
+            </Button>
+          </div>
         </div>
 
         {/* Status tabs */}
@@ -196,7 +209,7 @@ export function ProductList() {
           title={search ? 'No results' : 'No products'}
           description={search ? `No products match "${search}"` : 'Add products to your catalog.'}
           action={
-            !search ? (
+            !search && !atLimit ? (
               <Button size="sm" onClick={() => setShowCreate(true)}>
                 <Plus className="h-4 w-4" /> New Product
               </Button>

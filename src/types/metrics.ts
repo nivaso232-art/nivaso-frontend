@@ -4,6 +4,11 @@ export interface DayStats {
   tokens: number
 }
 
+export interface RevenuePoint {
+  label: string
+  amount: number
+}
+
 export interface Metrics {
   tickets: {
     by_status: Record<string, number>
@@ -35,5 +40,12 @@ export interface Metrics {
   sessions: {
     active: number
     total: number
+  }
+  products_delivered: number
+  revenue: {
+    currency: string
+    by_week: RevenuePoint[]
+    by_month: RevenuePoint[]
+    by_year: RevenuePoint[]
   }
 }
