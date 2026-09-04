@@ -95,9 +95,9 @@ export function ChatTest() {
   // Fetch all platform models from the backend, then filter by plan entitlement.
   const entitlements = useEntitlementStore((s) => s.entitlements)
   const { data: allModels = [] } = useQuery({
-    queryKey: ['models'],
+    queryKey: ['models', selectedBusinessSlug],  // re-fetch when business changes
     queryFn: modelsApi.list,
-    staleTime: 5 * 60_000,
+    staleTime: 0,                                // always fresh — must stay in sync with entitlement model IDs
   })
 
   const safeAllModels = Array.isArray(allModels) ? allModels : []
@@ -113,8 +113,14 @@ export function ChatTest() {
   }))
 
   // Auto-select the first plan-allowed model once the list loads.
+  // Also reset if the current selection is no longer in the allowed list
+  // (e.g. after switching to a business on a different plan).
   useEffect(() => {
-    if (safeModels.length > 0 && !selectedModel) {
+    if (safeModels.length === 0) return
+    const isStillAllowed = safeModels.some(
+      (m) => `${m.provider}::${m.model}` === selectedModel,
+    )
+    if (!selectedModel || !isStillAllowed) {
       const first = safeModels[0]
       setSelectedModel(`${first.provider}::${first.model}`)
     }
@@ -289,7 +295,14 @@ export function ChatTest() {
           </div>
 
           <div className="flex min-w-[180px] flex-col gap-0.5">
-            <label className="text-xs font-medium text-gray-500">Model</label>
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs font-medium text-gray-500">Model</label>
+              {entitlements && (
+                <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 capitalize">
+                  {entitlements.plan} · {safeModels.length} available
+                </span>
+              )}
+            </div>
             <Select
               options={modelSelectOptions}
               value={selectedModel}
