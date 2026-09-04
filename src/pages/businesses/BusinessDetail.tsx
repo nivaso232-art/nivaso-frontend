@@ -664,8 +664,8 @@ export function BusinessDetail() {
               <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform', razorpayEnabled ? 'translate-x-5' : 'translate-x-0.5')} />
             </button>
           </div>
-          {/* ── AI Model Selection (gated by ai.custom_model_picker) ─────── */}
-          <FeatureGate flag={Flag.AI_CUSTOM_MODEL_PICKER} label="Custom AI Model Selection">
+          {/* ── AI Model Selection — shown whenever the plan allows 2+ models ── */}
+          {permittedModels.length > 1 && (
           <div className="rounded-lg border border-gray-200 p-4 space-y-4">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-violet-500" />
@@ -693,7 +693,7 @@ export function BusinessDetail() {
               disabled={!agentProvider || !agentModel}
             />
           </div>
-          </FeatureGate>
+          )}
 
           <div>
             <p className="mb-2 text-sm font-medium text-gray-500">All Settings (raw)</p>
