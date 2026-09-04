@@ -119,9 +119,10 @@ export function SuperAdminChat() {
     staleTime: 5 * 60_000,
   })
 
+  const safeModels = Array.isArray(allModels) ? allModels : []
   const modelOptions = [
     { value: '', label: 'Default model' },
-    ...allModels.map((m) => ({
+    ...safeModels.map((m) => ({
       value: `${m.provider}::${m.model}`,
       label: m.label,
     })),

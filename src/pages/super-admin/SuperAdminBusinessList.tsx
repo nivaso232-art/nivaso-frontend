@@ -167,7 +167,7 @@ export function SuperAdminBusinessList() {
       </div>
 
       <div className="space-y-2">
-        {businesses.map((biz) => (
+        {(Array.isArray(businesses) ? businesses : []).map((biz) => (
           <Link
             key={biz.business_id}
             to={`/super-admin/businesses/${biz.business_slug}`}

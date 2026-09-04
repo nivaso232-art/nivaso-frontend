@@ -100,26 +100,25 @@ export function ChatTest() {
     staleTime: 5 * 60_000,
   })
 
+  const safeAllModels = Array.isArray(allModels) ? allModels : []
   const allowedModelIds = flagArray(entitlements, Flag.AI_MODELS)
   const availableModels = allowedModelIds === null
-    ? allModels
-    : allModels.filter((m) => allowedModelIds.includes(m.model))
-
-  // Auto-select the first plan-allowed model once the list loads.
-  // This avoids sending an empty model string which makes the backend fall
-  // back to the global default (often a different provider than the plan's
-  // configured models), causing provider-mismatch errors.
-  useEffect(() => {
-    if (availableModels.length > 0 && !selectedModel) {
-      const first = availableModels[0]
-      setSelectedModel(`${first.provider}::${first.model}`)
-    }
-  }, [availableModels, selectedModel])
-
-  const modelSelectOptions = availableModels.map((m) => ({
+    ? safeAllModels
+    : safeAllModels.filter((m) => allowedModelIds.includes(m.model))
+  // Declare safeModels before the useEffect that references it in its dep array.
+  const safeModels = Array.isArray(availableModels) ? availableModels : []
+  const modelSelectOptions = safeModels.map((m) => ({
     value: `${m.provider}::${m.model}`,
     label: m.label,
   }))
+
+  // Auto-select the first plan-allowed model once the list loads.
+  useEffect(() => {
+    if (safeModels.length > 0 && !selectedModel) {
+      const first = safeModels[0]
+      setSelectedModel(`${first.provider}::${first.model}`)
+    }
+  }, [safeModels, selectedModel])
   const [messages, setMessages] = useState<DisplayMessage[]>([])
   const [input, setInput] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
