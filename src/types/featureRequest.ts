@@ -21,6 +21,8 @@ export interface SuperAdminBusiness {
   business_id: string
   business_name: string
   business_slug: string
+  business_status: string
+  business_timezone: string
   plan: string
   overrides: Record<string, unknown>
   resolved: Record<string, unknown>

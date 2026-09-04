@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle, XCircle, Clock } from 'lucide-react'
 import { superAdminApi } from '@/api/superAdmin'
 import { cn } from '@/utils/cn'
-import type { FeatureRequest } from '@/types/featureRequest'
 
 const STATUS_TABS = [
   { value: undefined,  label: 'All' },

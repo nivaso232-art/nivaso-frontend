@@ -20,9 +20,10 @@ interface ApiMessage {
   content: string
 }
 
-function parseModel(value: string): { provider?: string; model?: string } {
+function parseModel(value: string): { provider?: 'anthropic' | 'gemini'; model?: string } {
   if (!value) return {}
-  const [provider, model] = value.split('::')
+  const [rawProvider, model] = value.split('::')
+  const provider = rawProvider === 'anthropic' || rawProvider === 'gemini' ? rawProvider : undefined
   return { provider, model }
 }
 
