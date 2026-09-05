@@ -17,6 +17,7 @@ interface DisplayMessage {
   content: string
   modelUsed?: string
   toolsUsed?: string[]
+  channelLatencyMs?: number | null
   fromHistory?: boolean
 }
 
@@ -174,6 +175,7 @@ export function ChatTest() {
           content: data.reply,
           modelUsed: data.model_used,
           toolsUsed: data.tools_used.map((t) => t.tool),
+          channelLatencyMs: data.channel_latency_ms,
         },
       ])
       // Refresh sessions list so new sessions / last_message_at updates appear
@@ -373,11 +375,18 @@ export function ChatTest() {
                   {m.content}
                 </div>
 
-                {(m.modelUsed || (m.toolsUsed && m.toolsUsed.length > 0)) && (
+                {(m.modelUsed || (m.toolsUsed && m.toolsUsed.length > 0) || m.channelLatencyMs != null) && (
                   <div className="mt-1 flex flex-wrap gap-1">
                     {m.modelUsed && (
                       <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600">
                         {m.modelUsed}
+                      </span>
+                    )}
+                    {m.channelLatencyMs != null && (
+                      <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                        {m.channelLatencyMs < 1000
+                          ? `${m.channelLatencyMs}ms`
+                          : `${(m.channelLatencyMs / 1000).toFixed(1)}s`}
                       </span>
                     )}
                     {m.toolsUsed?.map((t) => (

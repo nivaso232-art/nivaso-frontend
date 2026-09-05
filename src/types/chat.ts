@@ -21,6 +21,7 @@ export interface ChatResponse {
   conversation_state: string
   tools_used: ToolUsed[]
   model_used: string
+  channel_latency_ms: number | null
 }
 
 export interface HistoryMessage {
