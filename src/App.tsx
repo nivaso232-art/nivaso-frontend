@@ -27,6 +27,7 @@ import { SuperAdminBusinessDetail } from '@/pages/super-admin/SuperAdminBusiness
 import { SuperAdminFeatureRequests } from '@/pages/super-admin/SuperAdminFeatureRequests'
 import { SuperAdminPlanDefaults } from '@/pages/super-admin/SuperAdminPlanDefaults'
 import { SuperAdminAuditLog } from '@/pages/super-admin/SuperAdminAuditLog'
+import { SuperAdminPlaybook } from '@/pages/super-admin/SuperAdminPlaybook'
 import { SuperAdminChat } from '@/pages/super-admin/SuperAdminChat'
 
 const queryClient = new QueryClient({
@@ -81,6 +82,7 @@ export default function App() {
             <Route path="requests"              element={<SuperAdminFeatureRequests />} />
             <Route path="plans"                 element={<SuperAdminPlanDefaults />} />
             <Route path="audit"                 element={<SuperAdminAuditLog />} />
+            <Route path="playbook"              element={<SuperAdminPlaybook />} />
             <Route path="chat"                  element={<SuperAdminChat />} />
           </Route>
 

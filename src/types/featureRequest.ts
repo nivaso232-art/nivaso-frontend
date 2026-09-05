@@ -17,6 +17,21 @@ export interface FeatureRequestIn {
   reason?: string
 }
 
+export interface BusinessRule {
+  id: string
+  scope: 'global' | 'plan' | 'business'
+  plan: string | null
+  business_id: string | null
+  trigger: string
+  instruction: string
+  feature_condition: string | null
+  priority: number
+  is_active: boolean
+  updated_by: string
+  created_at: string
+  updated_at: string
+}
+
 export interface SuperAdminBusiness {
   business_id: string
   business_name: string

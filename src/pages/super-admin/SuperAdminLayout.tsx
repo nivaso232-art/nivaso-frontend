@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Building2, Inbox, ShieldCheck, LayoutList, Clock, LogOut, Bot } from 'lucide-react'
+import { BookOpen, Building2, Inbox, ShieldCheck, LayoutList, Clock, LogOut, Bot } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAuthStore } from '@/store/authStore'
 
@@ -8,6 +8,7 @@ const nav = [
   { to: '/super-admin/requests',   label: 'Feature Requests', icon: Inbox },
   { to: '/super-admin/plans',      label: 'Plan Defaults',    icon: LayoutList },
   { to: '/super-admin/audit',      label: 'Audit Log',        icon: Clock },
+  { to: '/super-admin/playbook',   label: 'AI Playbook',      icon: BookOpen },
   { to: '/super-admin/chat',       label: 'Platform AI',      icon: Bot },
 ]
 

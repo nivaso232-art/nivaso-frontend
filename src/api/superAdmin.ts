@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { SuperAdminBusiness, FeatureRequest } from '@/types/featureRequest'
+import type { SuperAdminBusiness, FeatureRequest, BusinessRule } from '@/types/featureRequest'
 import { useAuthStore } from '@/store/authStore'
 
 // Super-admin calls use a separate key header and bypass the regular apiClient.
@@ -84,6 +84,19 @@ export const superAdminApi = {
     superAdminClient
       .post<{ reply: string; tools_used: string[] }>('/super-admin/chat', payload)
       .then((r) => r.data),
+
+  // AI Playbook — business rules
+  listRules: () =>
+    superAdminClient.get<BusinessRule[]>('/super-admin/playbook').then((r) => r.data),
+
+  createRule: (payload: Omit<BusinessRule, 'id' | 'updated_by' | 'created_at' | 'updated_at'>) =>
+    superAdminClient.post<BusinessRule>('/super-admin/playbook', payload).then((r) => r.data),
+
+  updateRule: (id: string, payload: Partial<BusinessRule>) =>
+    superAdminClient.patch<BusinessRule>(`/super-admin/playbook/${id}`, payload).then((r) => r.data),
+
+  deleteRule: (id: string) =>
+    superAdminClient.delete(`/super-admin/playbook/${id}`),
 
   // Plan definitions
   getPlanHints: () =>
